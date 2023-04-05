@@ -167,34 +167,33 @@ class GetProxyIP(object):
         file.write('INFO-----本次代理ip获取完毕\n')
 
 
-if __name__ == '__main__':
-    fp = open('use.log', mode='a+', encoding='utf-8')
-    proxy_ip_to_csv = {
-        'number': [],
-        'domestic_http': [],
-        'domestic_https': [],
-        'abroad_http': [],
-        'abroad_https': [],
-    }
-    try:
-        proxy_ip_file = pd.read_csv('save_proxy_ip.csv')
-        csv_domestic_http = proxy_ip_file['domestic_http'].dropna().tolist()
-        if len(csv_domestic_http) > 20:
-            ip = GetProxyIP(ip_list=proxy_ip_to_csv, proxy=csv_domestic_http)
-        else:
-            ip = GetProxyIP(ip_list=proxy_ip_to_csv)
-    except:
+fp = open('use.log', mode='a+', encoding='utf-8')
+proxy_ip_to_csv = {
+    'number': [],
+    'domestic_http': [],
+    'domestic_https': [],
+    'abroad_http': [],
+    'abroad_https': [],
+}
+try:
+    proxy_ip_file = pd.read_csv('save_proxy_ip.csv')
+    csv_domestic_http = proxy_ip_file['domestic_http'].dropna().tolist()
+    if len(csv_domestic_http) > 20:
+        ip = GetProxyIP(ip_list=proxy_ip_to_csv, proxy=csv_domestic_http)
+    else:
         ip = GetProxyIP(ip_list=proxy_ip_to_csv)
-    try:
-        ip.run(fp)
-    except Exception as e:
-        fp.write(f'ERROR----- 运行失败{e}\n')
-        fp.close()
-    proxy_ip_to_csv = pd.concat([
-                                 pd.DataFrame({'number': list(range(1, len(proxy_ip_to_csv['domestic_http']) + 1))}),
-                                 pd.DataFrame({'domestic_http': proxy_ip_to_csv['domestic_http']}),
-                                 # pd.DataFrame({'domestic_https': proxy_ip_to_csv['domestic_https']}),
-                                 pd.DataFrame({'abroad_http': proxy_ip_to_csv['abroad_http']}),
-                                 # pd.DataFrame({'abroad_https': proxy_ip_to_csv['abroad_https']})
-                                 ], axis=1)
-    proxy_ip_to_csv.to_csv('save_proxy_ip.csv', index=False)
+except:
+    ip = GetProxyIP(ip_list=proxy_ip_to_csv)
+try:
+    ip.run(fp)
+except Exception as e:
+    fp.write(f'ERROR----- 运行失败{e}\n')
+    fp.close()
+proxy_ip_to_csv = pd.concat([
+                             pd.DataFrame({'number': list(range(1, len(proxy_ip_to_csv['domestic_http']) + 1))}),
+                             pd.DataFrame({'domestic_http': proxy_ip_to_csv['domestic_http']}),
+                             # pd.DataFrame({'domestic_https': proxy_ip_to_csv['domestic_https']}),
+                             pd.DataFrame({'abroad_http': proxy_ip_to_csv['abroad_http']}),
+                             # pd.DataFrame({'abroad_https': proxy_ip_to_csv['abroad_https']})
+                             ], axis=1)
+proxy_ip_to_csv.to_csv('save_proxy_ip.csv', index=False)
