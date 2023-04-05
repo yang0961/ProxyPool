@@ -33,4 +33,4 @@ def get_89ip_proxy_ip(number, proxy=None):
     return proxy_ip_list
 
 
-print(get_89ip_proxy_ip(10))
+print(get_89ip_proxy_ip(10, proxy={'ip': '27.158.127.206', 'port': '8089'}))
