@@ -33,3 +33,4 @@ jobs:
       - name: Run a multi-line script
         run: |
           python main.py
+          python file.py
