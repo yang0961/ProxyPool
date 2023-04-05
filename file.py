@@ -38,4 +38,4 @@ def get_89ip_proxy_ip(number, proxy=None):
     return proxy_ip_list
 
 
-print(get_89ip_proxy_ip(10, proxy={'ip': '10.2.98.52', 'port': '18013'}))
+print(get_89ip_proxy_ip(10))
