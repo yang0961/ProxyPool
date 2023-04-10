@@ -1,47 +1,39 @@
-# coding: utf-8
-# @Author: 小杨大帅哥
+import asyncio
+import re
 import time
 
+import aiohttp
 import faker
-from requests import get
-import re
-
-global_headers = {
-    'user-agent': faker.Factory().create().user_agent(),
-}
 
 
-def get_66ip_proxy_ip(number: int = 1, proxy_type: int = 0, proxy_area: int = 1, proxy=None) -> list:
-    """http://www.66ip.cn/nmtq.php?   最多一次提取300个"""
-    assert number <= 300, '最多一次获取300个ip'
-    assert proxy is None or isinstance(proxy, dict), "proxy必须是一个字典"
-    ip_url = 'http://www.66ip.cn/nmtq.php?'
-    headers = global_headers.copy()
-    headers['cookie'] = f"Hm_lvt_1761fabf3c988e7f04bec51acd4073f4=1680425293,1680576974; " \
-                        f"Hm_lpvt_1761fabf3c988e7f04bec51acd4073f4={int(time.time())} "
-    proxy_ip_list = []
-    proxy_ip_key = ['ip', 'port']
-    params = {
-        "getnum": number,  # 数量
-        "isp": 0,  # 运营商选择
-        "anonymoustype": 3,  # 匿名程度
-        "start": '',  # 指定IP段
-        "ports": '',  # 指定端口
-        "export": '',  # 排除端口
-        "ipaddress": '',  # 指定地区
-        "area": proxy_area,  # 过滤条件 0--国内外 1--国内  2--国外
-        "proxytype": proxy_type,  # 选择代理类型 0--http  1--https  3--全部
-        "api": "66ip",
+async def __get_tool_baba_proxy_ip(page: int):
+    http = []
+    https = []
+    url = f"https://www.toolbaba.cn/ip?p={page}"
+    headers = {
+        'cookie': f"""Hm_lvt_7b748a794d3c90cdc594298ab8b2e6a2=1680942688; __gads=ID=e57fb588d0b204f6-22edc56e16dd009b:T=1680942687:RT=1680942687:S=ALNI_MbRl_8oG_9kExWlTxgDslKWAV7THw; __gpi=UID=00000bef15223a8b:T=1680942687:RT=1680942687:S=ALNI_MaxeH9MTazEzMcYlIWLAF-hXPYC3A; Hm_lpvt_7b748a794d3c90cdc594298ab8b2e6a2={int(time.time())}""",
+        'referer': url,
+        'user-agent': faker.Factory().create().user_agent(),
     }
-    if proxy is None:
-        response = get(url=ip_url, headers=headers, params=params, timeout=8)
-    else:
-        response = get(url=ip_url, headers=headers, params=params, proxies=proxy, timeout=8)
-    response.encoding = 'GBK'
-    result_list = re.findall('\s+(.*?):(.*?)<br />', response.text)
-    for i in range(len(result_list)):
-        proxy_ip_list.append(dict(zip(proxy_ip_key, result_list[i])))
-    return proxy_ip_list
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url=url, headers=headers, timeout=5) as response:
+            text = await response.text()
+    for element in re.findall(
+            '<tr>\s+<th.*?</th>\s+<td>(.*?)</td>\s+\s+<td>(.*?)</td>\s+\s+<td>(.*?)</td>\s+\s+<td>(.*?)'
+            '</td>\s+\s+<td>(.*?)</td>\s+\s+<td>(.*?)</td>\s+\s+<td>(.*?)</td>\s+\s+<td>(.*?)</td>\s+\s+'
+            '<td>(.*?)</td>\s+\s+</tr>', text, re.S):
+        if element[4] == '高匿名' and int(element[6]) < 100:
+            if element[2] == 'HTTP':
+                http.append({'ip': element[0], 'port': element[1], 'type': element[2]})
+            else:
+                https.append({'ip': element[0], 'port': element[1], 'type': element[2]})
+    return http, https
 
 
-print(get_66ip_proxy_ip(10))
+async def get_ip():
+    for page in range(1):
+        return await __get_tool_baba_proxy_ip(page)
+
+
+loop = asyncio.get_event_loop()
+print(loop.run_until_complete(get_ip()))
